@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 @Data
-@Component
+@Component 
 public class FruitSales {
     private Long id;
     private String fruitName;
