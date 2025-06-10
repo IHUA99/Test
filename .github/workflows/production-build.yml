@@ -22,7 +22,7 @@ jobs:
       - name: Docker Build (Release)
         run: |
           docker build -t ihua99/test:release-$(date +%s) .
-          docker tag ihua99/test:release-$(date +%s) your-repo/your-app:latest
+          docker tag ihua99/test:release-$(date +%s) ihua99/test:latest
 
       - name: Push to Docker Registry
         run: |
