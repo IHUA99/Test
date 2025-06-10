@@ -7,6 +7,9 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_REPO: ihua99/test  # 定义Docker仓库名
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,19 +23,20 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Docker Build and Tag
-        id: docker-build
+      - name: Generate Docker tag
+        id: tag
         run: |
-          # 使用统一时间戳
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          echo "RELEASE_TAG=release-$TIMESTAMP" >> $GITHUB_ENV
-          
-          # 构建并标记镜像
-          docker build -t ihua99/test:$RELEASE_TAG .
-          docker tag ihua99/test:$RELEASE_TAG ihua99/test:latest
-          
-          # 输出用于后续步骤
-          echo "tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+          # 同时生成时间戳和短SHA两种标签
+          echo "TIMESTAMP=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
+          echo "SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)" >> $GITHUB_ENV
+          echo "RELEASE_TAG=release-${{ env.TIMESTAMP }}-${{ env.SHORT_SHA }}" >> $GITHUB_ENV
+          echo "::set-output name=tag::$RELEASE_TAG"
+
+      - name: Docker Build
+        run: |
+          echo "Building with tag: ${{ env.RELEASE_TAG }}"
+          docker build -t $DOCKER_REPO:${{ env.RELEASE_TAG }} .
+          docker tag $DOCKER_REPO:${{ env.RELEASE_TAG }} $DOCKER_REPO:latest
 
       - name: Login to Docker Hub
         run: |
@@ -40,5 +44,6 @@ jobs:
 
       - name: Push Docker Image
         run: |
-          docker push ihua99/test:${{ env.RELEASE_TAG }}
-          docker push ihua99/test:latest
+          echo "Pushing tag: ${{ env.RELEASE_TAG }}"
+          docker push $DOCKER_REPO:${{ env.RELEASE_TAG }}
+          docker push $DOCKER_REPO:latest
