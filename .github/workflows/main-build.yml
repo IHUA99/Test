@@ -26,7 +26,6 @@ jobs:
       - name: Generate Build Metadata
         id: metadata
         run: |
-          # More readable timestamp format (YYYYMMDD-HHMMSS)
           BUILD_TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
           
