@@ -1,49 +1,39 @@
 name: Production Branch Build
-
 on:
   push:
     branches: [production]
-
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     env:
-      DOCKER_REPO: ihua99/test  # 定义Docker仓库名
-    
+      DOCKER_REPO: ihua99/test  
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '11'
-
       - name: Build with Maven
         run: mvn clean package -DskipTests
-
       - name: Generate Docker tag
         id: tag
         run: |
-          # 同时生成时间戳和短SHA两种标签
-          echo "TIMESTAMP=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
-          echo "SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)" >> $GITHUB_ENV
-          echo "RELEASE_TAG=release-${{ env.TIMESTAMP }}-${{ env.SHORT_SHA }}" >> $GITHUB_ENV
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
+          RELEASE_TAG=release-${TIMESTAMP}-${SHORT_SHA}
           echo "::set-output name=tag::$RELEASE_TAG"
-
       - name: Docker Build
         run: |
-          echo "Building with tag: ${{ env.RELEASE_TAG }}"
-          docker build -t $DOCKER_REPO:${{ env.RELEASE_TAG }} .
-          docker tag $DOCKER_REPO:${{ env.RELEASE_TAG }} $DOCKER_REPO:latest
-
+          echo "Building with tag: ${{ steps.tag.outputs.tag }}"
+          docker build -t $DOCKER_REPO:${{ steps.tag.outputs.tag }} .
+          docker tag $DOCKER_REPO:${{ steps.tag.outputs.tag }} $DOCKER_REPO:latest
       - name: Login to Docker Hub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
       - name: Push Docker Image
         run: |
-          echo "Pushing tag: ${{ env.RELEASE_TAG }}"
-          docker push $DOCKER_REPO:${{ env.RELEASE_TAG }}
+          echo "Pushing tag: ${{ steps.tag.outputs.tag }}"
+          docker push $DOCKER_REPO:${{ steps.tag.outputs.tag }}
           docker push $DOCKER_REPO:latest
