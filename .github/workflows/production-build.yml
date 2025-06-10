@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # 更新到最新版本
+        uses: actions/checkout@v3
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -22,9 +22,9 @@ jobs:
 
       - name: Docker Build and Tag (Release)
         run: |
-          # 使用统一时间戳或GitHub内置变量
+          # Using timestamp for versioning
           TIMESTAMP=$(date +%s)
-          # 或 RELEASE_TAG=release-${{ github.sha:8 }}  # 使用短SHA值
+          # Alternatively, you could use: SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
           docker build -t ihua99/test:release-$TIMESTAMP .
           docker tag ihua99/test:release-$TIMESTAMP ihua99/test:latest
 
