@@ -24,7 +24,7 @@ jobs:
         run: |
           # 使用统一时间戳或GitHub内置变量
           TIMESTAMP=$(date +%s)
-          # 或 RELEASE_TAG=release-${{ github.sha::8 }}  # 使用短SHA值
+          # 或 RELEASE_TAG=release-${{ github.sha:8 }}  # 使用短SHA值
           docker build -t ihua99/test:release-$TIMESTAMP .
           docker tag ihua99/test:release-$TIMESTAMP ihua99/test:latest
 
