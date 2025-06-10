@@ -20,15 +20,25 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Docker Build and Tag (Release)
+      - name: Docker Build and Tag
+        id: docker-build
         run: |
-          # Using timestamp for versioning
-          TIMESTAMP=$(date +%s)
-          # Alternatively, you could use: SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
-          docker build -t ihua99/test:release-$TIMESTAMP .
-          docker tag ihua99/test:release-$TIMESTAMP ihua99/test:latest
+          # 使用统一时间戳
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          echo "RELEASE_TAG=release-$TIMESTAMP" >> $GITHUB_ENV
+          
+          # 构建并标记镜像
+          docker build -t ihua99/test:$RELEASE_TAG .
+          docker tag ihua99/test:$RELEASE_TAG ihua99/test:latest
+          
+          # 输出用于后续步骤
+          echo "tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Push to Docker Registry
+      - name: Login to Docker Hub
         run: |
-          docker push ihua99/test:release-$TIMESTAMP
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Push Docker Image
+        run: |
+          docker push ihua99/test:${{ env.RELEASE_TAG }}
           docker push ihua99/test:latest
