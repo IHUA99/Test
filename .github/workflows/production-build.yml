@@ -1,0 +1,31 @@
+name: Production Branch Build
+
+on:
+  push:
+    branches: [production]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Docker Build (Release)
+        run: |
+          docker build -t ihua99/test:release-$(date +%s) .
+          docker tag ihua99/test:release-$(date +%s) your-repo/your-app:latest
+
+      - name: Push to Docker Registry
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker push ihua99/test:release-$(date +%s)
+          docker push ihua99/test:latest
