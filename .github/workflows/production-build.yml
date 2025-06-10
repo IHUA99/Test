@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3  # 更新到最新版本
 
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '11'
@@ -20,13 +20,16 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Docker Build (Release)
+      - name: Docker Build and Tag (Release)
         run: |
-          docker build -t ihua99/test:release-$(date +%s) .
-          docker tag ihua99/test:release-$(date +%s) ihua99/test:latest
+          # 使用统一时间戳或GitHub内置变量
+          TIMESTAMP=$(date +%s)
+          # 或 RELEASE_TAG=release-${{ github.sha::8 }}  # 使用短SHA值
+          docker build -t ihua99/test:release-$TIMESTAMP .
+          docker tag ihua99/test:release-$TIMESTAMP ihua99/test:latest
 
       - name: Push to Docker Registry
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push ihua99/test:release-$(date +%s)
+          docker push ihua99/test:release-$TIMESTAMP
           docker push ihua99/test:latest
