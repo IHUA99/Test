@@ -68,11 +68,11 @@ jobs:
             sudo systemctl is-active --quiet docker || sudo systemctl start docker
             
             # 拉取最新的快照镜像
-            docker pull ihua99/test:snapshot
+            sudo docker pull ihua99/test:snapshot
             
             # 停止并删除旧容器
-            docker stop main-test-container || true
-            docker rm main-test-container || true
+            sudo docker stop main-test-container || true
+            sudo docker rm main-test-container || true
             
             # 运行新容器
             # 使用sudo确保有足够权限
@@ -80,4 +80,4 @@ jobs:
             
             # 验证容器是否成功启动
             echo "验证容器状态:"
-            docker ps -a | grep main-test-container
+            sudo docker ps -a | grep main-test-container
